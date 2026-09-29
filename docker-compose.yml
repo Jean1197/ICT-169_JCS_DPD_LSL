@@ -1,6 +1,8 @@
 services:
-  wordpress:
-    image: wordpress:latest
+wordpress:
+  build:
+    context: .
+    dockerfile: docker/wordpress/Dockerfile
     ports:
       - "8080:80"
     environment:
