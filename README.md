@@ -24,5 +24,3 @@ Lancer le projet : ```bash docker compose up -d --build
 ## Vérifier que le conteneur fonctionne : docker ps
 
 
-Prochaine fois Nginx : Faire un add et commit
-Chez dylan et lucas : faire un checkout main et mettre le contenu docker-compose.yml dans celui du main
