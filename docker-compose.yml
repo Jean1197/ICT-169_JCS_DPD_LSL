@@ -3,7 +3,46 @@ networks:
     driver: bridge
 
 services:
-  # 1. Reverse Proxy Nginx
+
+  # 1. Base de données MySQL
+  mysql:
+    build:
+      context: .
+      dockerfile: docker/mysql/Dockerfile
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  # 2. WordPress
+  wordpress:
+    build:
+      context: .
+      dockerfile: docker/wordpress/Dockerfile
+    container_name: wordpress
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  # 3. Reverse Proxy Nginx
   nginx:
     image: nginx:latest
     container_name: nginx-proxy
@@ -17,7 +56,7 @@ services:
     networks:
       - app-network
 
-  # 2. Monitoring - Prometheus
+  # 4. Monitoring Prometheus
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -28,7 +67,7 @@ services:
     networks:
       - app-network
 
-  # 3. Monitoring - Grafana
+  # 5. Monitoring Grafana
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -41,28 +80,5 @@ services:
     depends_on:
       - prometheus
 
-
-Partie Wordpress ---
-
-services:
-wordpress:
-  build:
-    context: .
-    dockerfile: docker/wordpress/Dockerfile
-    ports:
-      - "8080:80"
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: ${MYSQL_USER}
-      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
-      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
-    depends_on:
-      - db
-
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-      MYSQL_ROOT_PASSWORD: root
+volumes:
+  mysql_data:
