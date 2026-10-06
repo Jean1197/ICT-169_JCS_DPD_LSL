@@ -38,7 +38,7 @@ MYSQL_PASSWORD=wordpress
 MYSQL_ROOT_PASSWORD=root
 ```
 
-⚠️ Le fichier `.env` contient des informations sensibles. Il ne doit pas être envoyé sur GitHub.
+ Le fichier `.env` contient des informations sensibles. Il ne doit pas être envoyé sur GitHub.
 
 Le fichier `.gitignore` contient :
 
@@ -94,7 +94,7 @@ WordPress est normalement accessible avec :
 http://localhost:8080
 ```
 
-⚠️ WordPress nécessite que le service MySQL soit également disponible.
+ WordPress nécessite que le service MySQL soit également disponible.
 
 ---
 
@@ -208,7 +208,7 @@ git check-ignore -v .env
 
 Git doit indiquer que `.env` est ignoré par `.gitignore`.
 
-⚠️ Dans un environnement de production, il est recommandé d'utiliser des secrets plus sécurisés et de ne pas utiliser de mots de passe simples comme `root`.
+ Dans un environnement de production, il est recommandé d'utiliser des secrets plus sécurisés et de ne pas utiliser de mots de passe simples comme `root`.
 
 ---
 
