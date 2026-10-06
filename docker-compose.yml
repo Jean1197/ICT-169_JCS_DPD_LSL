@@ -4,7 +4,6 @@ networks:
 
 services:
 
-  # 1. Base de données MySQL
   mysql:
     build:
       context: .
@@ -23,7 +22,6 @@ services:
     networks:
       - app-network
 
-  # 2. WordPress
   wordpress:
     build:
       context: .
@@ -42,7 +40,6 @@ services:
     networks:
       - app-network
 
-  # 3. Reverse Proxy Nginx
   nginx:
     image: nginx:latest
     container_name: nginx-proxy
@@ -56,7 +53,6 @@ services:
     networks:
       - app-network
 
-  # 4. Monitoring Prometheus
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -67,7 +63,6 @@ services:
     networks:
       - app-network
 
-  # 5. Monitoring Grafana
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
