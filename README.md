@@ -1,8 +1,8 @@
-# 🐳 MySQL Docker Infrastructure
+#  MySQL Docker Infrastructure
 
 Infrastructure Docker simple permettant de lancer une instance **MySQL 8.0** persistante, configurable avec des variables d'environnement et utilisable notamment comme base de données pour **WordPress**.
 
-## 📋 Sommaire
+##  Sommaire
 
 - [Présentation](#-présentation)
 - [Architecture du projet](#-architecture-du-projet)
@@ -17,7 +17,7 @@ Infrastructure Docker simple permettant de lancer une instance **MySQL 8.0** per
 - [Sécurité](#-sécurité)
 - [Dépannage](#-dépannage)
 
-## 🚀 Présentation
+##  Présentation
 
 Ce projet utilise **Docker Compose** pour construire et exécuter un conteneur MySQL.
 
@@ -32,7 +32,7 @@ La configuration actuelle :
 - fournit un script de déploiement ;
 - fournit un script permettant de créer la base `wordpress` si nécessaire.
 
-## 📁 Architecture du projet
+## Architecture du projet
 
 La configuration Docker actuelle suppose une structure similaire à celle-ci :
 
@@ -54,7 +54,7 @@ La configuration Docker actuelle suppose une structure similaire à celle-ci :
 
 > **Important :** `docker-compose.yml` référence `docker/mysql/Dockerfile`, et le Dockerfile copie `config/mysql/my.cnf`. Les fichiers doivent donc être placés dans ces dossiers, ou les chemins doivent être adaptés.
 
-## ✅ Prérequis
+##  Prérequis
 
 Avant de lancer le projet, installer :
 
@@ -68,7 +68,7 @@ docker --version
 docker compose version
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 Les variables MySQL sont chargées depuis le fichier `.env` :
 
@@ -88,7 +88,7 @@ MYSQL_PASSWORD=change_me
 | `MYSQL_USER` | Utilisateur MySQL applicatif |
 | `MYSQL_PASSWORD` | Mot de passe de l'utilisateur applicatif |
 
-## 🐳 Installation et démarrage
+##  Installation et démarrage
 
 ### 1. Cloner le dépôt
 
@@ -140,7 +140,7 @@ Le conteneur doit apparaître sous le nom :
 mysql
 ```
 
-## 🌐 Environnement de production
+##  Environnement de production
 
 Le fichier `docker-compose.prod.yml` surcharge actuellement la configuration du service MySQL afin de garantir :
 
@@ -154,7 +154,7 @@ Pour combiner la configuration principale avec celle de production :
 docker compose   -f docker-compose.yml   -f docker-compose.prod.yml   up -d --build
 ```
 
-## 🗄️ Initialisation de la base
+##  Initialisation de la base
 
 Le script `init-db.sh` exécute une commande SQL dans le conteneur `mysql` :
 
@@ -211,7 +211,7 @@ default_authentication_plugin=mysql_native_password
 - `max_connections=100` : limite le serveur à 100 connexions simultanées.
 - `default_authentication_plugin=mysql_native_password` : configure le mécanisme d'authentification par défaut prévu par ce projet.
 
-## 💾 Volumes et persistance
+##  Volumes et persistance
 
 Les données MySQL sont enregistrées dans le volume Docker :
 
@@ -245,9 +245,9 @@ Supprimer également le volume et **toutes les données MySQL** :
 docker compose down -v
 ```
 
-> ⚠️ Cette dernière commande supprime les données de la base.
+>  Cette dernière commande supprime les données de la base.
 
-## 🛠️ Commandes utiles
+##  Commandes utiles
 
 Afficher les logs :
 
@@ -285,7 +285,7 @@ Arrêter le projet :
 docker compose down
 ```
 
-## 🔐 Sécurité
+##  Sécurité
 
 Avant de publier ce projet sur GitHub :
 
@@ -313,7 +313,7 @@ MYSQL_USER=user
 MYSQL_PASSWORD=your_user_password
 ```
 
-## 🧰 Dépannage
+##  Dépannage
 
 ### Le conteneur ne démarre pas
 
@@ -345,9 +345,9 @@ docker compose down -v
 docker compose up -d --build
 ```
 
-> ⚠️ Cela supprime les données existantes.
+>  Cela supprime les données existantes.
 
-## 📄 Fichiers du projet
+##  Fichiers du projet
 
 | Fichier | Rôle |
 | --- | --- |
@@ -359,6 +359,4 @@ docker compose up -d --build
 | `deploy.sh` | Construction et lancement des conteneurs |
 | `init-db.sh` | Création manuelle de la base `wordpress` si elle n'existe pas |
 
-## 📜 Licence
 
-Ajoutez ici la licence souhaitée pour le projet, par exemple MIT.
