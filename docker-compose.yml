@@ -1,6 +1,8 @@
+
 networks:
   app-network:
     driver: bridge
+
 
 services:
 
@@ -19,8 +21,11 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+
+
     networks:
       - app-network
+
 
   wordpress:
     build:
@@ -37,6 +42,11 @@ services:
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
     depends_on:
       - mysql
+
+
+volumes:
+  mysql_data:
+
     networks:
       - app-network
 
@@ -70,14 +80,7 @@ services:
     networks:
       - app-network
     depends_on:
-<<<<<<< Updated upstream
-      - prometheus
-<<<<<<< HEAD
-=======
+
 
 volumes:
   mysql_data:
->>>>>>> bf8912eb94bed93a318a0d9f7c74093c6cb331ba
-=======
-      - prometheus
->>>>>>> Stashed changes
