@@ -287,3 +287,30 @@ Cette infrastructure fournit :
 - un réseau Docker commun pour la communication entre les services.
 
 Elle constitue une base simple pour mettre en place une infrastructure de monitoring et peut ensuite être étendue avec la collecte de métriques Nginx, des dashboards Grafana et d'autres services.
+=======
+# ICT-169_JCS_DPD_LSL
+
+
+
+
+
+## Technologies utilisées
+- Docker
+- Docker Compose
+- MySQL 8.0
+-  Bash
+
+
+## Configuration
+Les variables d'environnement sont définies dans le fichier `.env` :
+- MYSQL_ROOT_PASSWORD
+- MYSQL_DATABASE
+- MYSQL_USER
+- MYSQL_PASSWORD
+
+## Déploiement
+Lancer le projet : ```bash docker compose up -d --build
+
+## Vérifier que le conteneur fonctionne : docker ps
+
+bf8912eb94bed93a318a0d9f7c74093c6cb331ba
