@@ -41,15 +41,12 @@ services:
       - app-network
 
   nginx:
-    image: nginx:latest
-    container_name: nginx-proxy
+    image: nginx:alpine
+    container_name: nginx
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./app/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - wordpress
     networks:
       - app-network
 
@@ -73,7 +70,14 @@ services:
     networks:
       - app-network
     depends_on:
+<<<<<<< Updated upstream
       - prometheus
+<<<<<<< HEAD
+=======
 
 volumes:
   mysql_data:
+>>>>>>> bf8912eb94bed93a318a0d9f7c74093c6cb331ba
+=======
+      - prometheus
+>>>>>>> Stashed changes
