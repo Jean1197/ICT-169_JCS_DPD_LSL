@@ -181,7 +181,7 @@ docker exec mysql mysql -u root -p...
 
 Il est préférable d'éviter tout mot de passe codé en dur et d'utiliser la configuration d'environnement ou une autre méthode de gestion des secrets.
 
-## 🔧 Configuration MySQL
+##  Configuration MySQL
 
 L'image personnalisée repose sur :
 
