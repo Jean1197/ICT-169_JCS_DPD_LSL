@@ -2,7 +2,7 @@
 
 Infrastructure Docker simple permettant de lancer une instance **MySQL 8.0** persistante, configurable avec des variables d'environnement et utilisable notamment comme base de données pour **WordPress**.
 
-##  Sommaire
+##  Sommaire principale
 
 - [Présentation](#-présentation)
 - [Architecture du projet](#-architecture-du-projet)
