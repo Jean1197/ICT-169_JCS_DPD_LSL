@@ -98,7 +98,7 @@ Pour vérifier le thème, ouvrir l'administration WordPress puis **Apparence →
 
 ### Nginx
 
-Le service `nginx` utilise `nginx:alpine`, expose le port `80` et charge la configuration `./app/nginx/default.conf`. Dans la configuration documentée du projet, Nginx sert de reverse proxy vers `http://grafana:3000`.
+Le service `nginx` utilise `nginx:alpine`, expose le port `80` et charge la configuration `./app/nginx/default.conf`. Dans la configuration documentée du projet, Nginx sert de reverse proxy vers `http://wordpress`.
 
 Le dossier `docker/nginx/` peut contenir un Dockerfile personnalisé, mais le fichier Compose utilise actuellement directement l'image `nginx:alpine`.
 
