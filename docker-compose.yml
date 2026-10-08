@@ -1,11 +1,4 @@
-
-networks:
-  app-network:
-    driver: bridge
-
-
 services:
-
   mysql:
     build:
       context: .
@@ -21,11 +14,8 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-
-
     networks:
       - app-network
-
 
   wordpress:
     build:
@@ -42,11 +32,6 @@ services:
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
     depends_on:
       - mysql
-
-
-volumes:
-  mysql_data:
-
     networks:
       - app-network
 
@@ -80,7 +65,11 @@ volumes:
     networks:
       - app-network
     depends_on:
+      - prometheus
 
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   mysql_data:
