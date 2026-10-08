@@ -1,158 +1,13 @@
-# Infrastructure Nginx, Prometheus & Grafana
+# ICT-169_JCS_DPD_LSL
 
-Ce projet met en place une petite infrastructure de conteneurs Docker composée de **Nginx**, **Prometheus** et **Grafana**.
+## Présentation
 
-L'objectif est de disposer d'un reverse proxy Nginx et d'une base de monitoring avec Prometheus et Grafana, tous reliés au même réseau Docker.
-
-## Architecture
-
-```text
-Utilisateur
-    |
-    | HTTP :80
-    v
-  Nginx
-    |
-    | proxy_pass
-    v
- Grafana :3000
-    |
-    v
-Prometheus :9090
-```
-
-Dans la configuration actuelle, Nginx écoute sur le port `80` et transmet les requêtes vers Grafana sur le port `3000`.
-
-Prometheus collecte actuellement ses propres métriques toutes les 15 secondes. Grafana utilise Prometheus comme source de données par défaut.
-
-## Technologies
-
-- Docker
-- Docker Compose
-- Nginx Alpine
-- Prometheus
-- Grafana
-
-## Structure du projet
-
-```text
-Project-root/
-├── app/
-│   └── nginx/
-│       └── default.conf
-├── docker/
-│   └── nginx/
-│       └── Dockerfile
-├── grafana/
-│   ├── dashboards/
-│   │   └── wordpress-dashboard.json
-│   ├── datasources/
-│   │   └── prometheus.yml
-│   └── provisioning/
-├── prometheus/
-│   └── prometheus.yml
-└── docker-compose.yml
-```
-
-> Le dossier `.git/` présent dans l'archive n'est pas détaillé ici : il contient les données internes de Git et ne fait pas partie de l'architecture applicative.
-
-## Services Docker
-
-### Nginx
-
-Le service `nginx` utilise l'image `nginx:alpine`.
-
-Il :
-
-- écoute sur le port `80` de la machine ;
-- monte `./app/nginx/default.conf` dans `/etc/nginx/conf.d/default.conf` ;
-- appartient au réseau Docker `app-network`.
-
-La configuration actuelle utilise Nginx comme reverse proxy vers :
-
-```text
-http://grafana:3000
-```
-
-Les en-têtes `Host`, `X-Real-IP`, `X-Forwarded-For` et `X-Forwarded-Proto` sont également transmis.
-
-### Prometheus
-
-Le service `prometheus` utilise l'image :
-
-```text
-prom/prometheus:latest
-```
-
-Le port `9090` est exposé sur la machine hôte.
-
-Le fichier :
-
-```text
-./prometheus/prometheus.yml
-```
-
-est monté dans :
-
-```text
-/etc/prometheus/prometheus.yml
-```
-
-La configuration définit un intervalle de collecte de **15 secondes** et surveille actuellement Prometheus lui-même sur `localhost:9090`.
-
-Une configuration Nginx est laissée en commentaire afin de pouvoir ajouter sa surveillance ultérieurement.
-
-### Grafana
-
-Le service `grafana` utilise l'image :
-
-```text
-grafana/grafana:latest
-```
-
-Il expose le port `3000` et dépend du service Prometheus.
-
-Le dossier :
-
-```text
-./grafana/provisioning
-```
-
-est monté dans :
-
-```text
-/etc/grafana/provisioning
-```
-
-Le fichier `grafana/datasources/prometheus.yml` présent dans le projet définit Prometheus comme source de données Grafana avec l'adresse :
-
-```text
-http://prometheus:9090
-```
-
-## Réseau Docker
-
-Les trois services utilisent le réseau :
-
-```text
-app-network
-```
-
-Il utilise le driver Docker `bridge`.
-
-Cela permet aux conteneurs de communiquer entre eux en utilisant leurs noms de services, par exemple :
-
-```text
-grafana:3000
-prometheus:9090
-```
+Projet Docker réunissant les services **MySQL 8.0**, **WordPress**, **Nginx**, **Prometheus** et **Grafana**. Le fichier `docker-compose.yml` définit leurs configurations et leur réseau commun `app-network`.
 
 ## Prérequis
 
-Avant de démarrer le projet, installer :
-
-- Docker
-- Docker Compose
+- Git
+- Docker et Docker Compose (`docker compose`)
 
 Vérification :
 
@@ -161,156 +16,167 @@ docker --version
 docker compose version
 ```
 
-## Démarrage
+## Organisation du projet
 
-Depuis la racine du projet :
+Les chemins utilisés par la configuration Docker sont notamment :
 
-```bash
-docker compose up -d
+```text
+.
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── .gitignore
+├── .env                 # local, ne pas versionner
+├── docker/
+│   ├── mysql/Dockerfile
+│   └── wordpress/Dockerfile
+├── config/mysql/my.cnf
+├── app/
+│   ├── nginx/default.conf
+│   └── wordpress/wp-content/
+├── prometheus/prometheus.yml
+├── grafana/provisioning/
+├── deploy.sh
+└── init-db.sh
 ```
 
-Pour reconstruire si nécessaire :
+Certains chemins ne sont utiles que si les fichiers et scripts correspondants sont présents dans le dépôt.
+
+## Configuration MySQL
+
+Le service `mysql` est construit depuis `docker/mysql/Dockerfile`, basé sur **MySQL 8.0**. La configuration personnalisée est définie dans `config/mysql/my.cnf`.
+
+Créer à la racine du projet un fichier `.env` **local** contenant les variables suivantes, avec des mots de passe choisis pour votre environnement :
+
+```dotenv
+MYSQL_ROOT_PASSWORD=change_me_root
+MYSQL_DATABASE=wordpress
+MYSQL_USER=user
+MYSQL_PASSWORD=change_me_user
+```
+
+- `MYSQL_ROOT_PASSWORD` : mot de passe administrateur MySQL.
+- `MYSQL_DATABASE` : base initialisée au premier démarrage (ici `wordpress`).
+- `MYSQL_USER` et `MYSQL_PASSWORD` : identifiants de l'application.
+
+**Ne pas envoyer `.env` sur GitHub.** Le fichier doit être ignoré dans `.gitignore`. Les mots de passe affichés ci-dessus sont des exemples, pas des identifiants de production.
+
+Les données MySQL sont persistées dans le volume Docker `mysql_data`, monté sur `/var/lib/mysql`. Le service expose le port `3306` sur la machine hôte.
+
+### Initialisation de la base
+
+Lors du premier démarrage avec un volume vide, `MYSQL_DATABASE=wordpress` permet à MySQL de créer la base. Si le script `init-db.sh` est présent et adapté à votre environnement, il peut également servir à l'initialisation manuelle.
+
+### Configuration `my.cnf`
+
+Le projet utilise une configuration personnalisée MySQL indiquant notamment :
+
+```ini
+[mysqld]
+bind-address=0.0.0.0
+max_connections=100
+default_authentication_plugin=mysql_native_password
+```
+
+Cette configuration est liée à la version MySQL utilisée ; vérifier sa compatibilité avant de changer de version.
+
+## WordPress
+
+Le service `wordpress` est construit depuis `docker/wordpress/Dockerfile` et utilise les fichiers du répertoire `app/wordpress/wp-content/` pour le contenu personnalisé, notamment le thème `mon-theme`.
+
+La connexion à MySQL est configurée dans Docker Compose :
+
+- Hôte : `mysql` (nom du service Docker)
+- Utilisateur : `${MYSQL_USER}`
+- Mot de passe : `${MYSQL_PASSWORD}`
+- Base : `${MYSQL_DATABASE}`
+
+WordPress dépend de MySQL et est exposé sur **http://localhost:8080**.
+
+Pour vérifier le thème, ouvrir l'administration WordPress puis **Apparence → Thèmes**.
+
+## Nginx, Prometheus et Grafana
+
+### Nginx
+
+Le service `nginx` utilise `nginx:alpine`, expose le port `80` et charge la configuration `./app/nginx/default.conf`. Dans la configuration documentée du projet, Nginx sert de reverse proxy vers `http://grafana:3000`.
+
+Le dossier `docker/nginx/` peut contenir un Dockerfile personnalisé, mais le fichier Compose utilise actuellement directement l'image `nginx:alpine`.
+
+### Prometheus
+
+Le service `prometheus` utilise `prom/prometheus:latest`, expose le port `9090` et charge `./prometheus/prometheus.yml`. La configuration initiale collecte les métriques de Prometheus, avec un intervalle documenté de 15 secondes.
+
+### Grafana
+
+Le service `grafana` utilise `grafana/grafana:latest`, expose le port `3000` et dépend de Prometheus. Le dossier `./grafana/provisioning` est monté dans `/etc/grafana/provisioning`.
+
+**À vérifier :** si la source de données est uniquement stockée dans `grafana/datasources/prometheus.yml`, elle ne sera pas automatiquement chargée par le montage de `grafana/provisioning` sans organisation adaptée. Un dashboard vide ne fournit pas de tableau de bord exploitable.
+
+## Démarrage et vérifications
+
+À la racine du dépôt :
 
 ```bash
+# Vérifier la configuration Docker Compose
+docker compose config --quiet
+
+# Construire et démarrer les services
 docker compose up -d --build
-```
 
-Vérifier les conteneurs :
-
-```bash
+# Vérifier les conteneurs
 docker compose ps
 ```
 
-## Accès aux services
-
-Après le démarrage :
+Adresses locales :
 
 | Service | Adresse |
-|---|---|
-| Nginx / reverse proxy Grafana | `http://localhost` |
-| Grafana directement | `http://localhost:3000` |
-| Prometheus | `http://localhost:9090` |
+| --- | --- |
+| Nginx | http://localhost |
+| WordPress | http://localhost:8080 |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 |
+| MySQL | localhost:3306 (connexion SQL) |
 
-## Arrêter le projet
-
-```bash
-docker compose down
-```
-
-Pour consulter les logs :
+Afficher les journaux :
 
 ```bash
-docker compose logs -f
-```
-
-Pour un service particulier :
-
-```bash
+docker compose logs -f mysql
+docker compose logs -f wordpress
 docker compose logs -f nginx
 docker compose logs -f prometheus
 docker compose logs -f grafana
 ```
 
-## Dockerfile Nginx
+Arrêter les conteneurs sans supprimer les données :
 
-Le projet contient également `docker/nginx/Dockerfile`.
-
-Il est basé sur `nginx:alpine`, copie le dossier `./app` vers `/usr/share/nginx/html` et expose le port `80`.
-
-**À noter :** le `docker-compose.yml` actuel utilise directement `image: nginx:alpine` et ne construit donc pas ce Dockerfile. Pour utiliser cette image personnalisée, il faudrait modifier la configuration Compose avec une section `build`.
-
-## Points à vérifier / améliorations possibles
-
-### Provisioning Grafana
-
-Le fichier de datasource Prometheus se trouve actuellement dans :
-
-```text
-grafana/datasources/prometheus.yml
+```bash
+docker compose down
 ```
 
-alors que le volume Docker monte :
+**Attention :** `docker compose down -v` supprime aussi les volumes, dont les données MySQL.
 
-```text
-./grafana/provisioning:/etc/grafana/provisioning
+## Environnement de production
+
+Le fichier `docker-compose.prod.yml` ajoute la politique de redémarrage `restart: always` au service MySQL. Pour combiner les deux fichiers :
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-Il faut donc vérifier que la structure de provisioning voulue par Grafana correspond bien à cette organisation. Dans l'état actuel des fichiers, `grafana/datasources/` n'est pas monté directement dans le conteneur.
+## Dépannage et sécurité
 
-### Dashboard
+- **Port 3306 déjà utilisé :** rechercher un autre serveur MySQL ou adapter le mappage, par exemple `3307:3306`.
+- **Identifiants modifiés mais non appliqués :** les variables d'initialisation MySQL ne reconfigurent pas automatiquement une base déjà présente dans un volume.
+- **WordPress inaccessible :** vérifier `docker compose ps`, les logs WordPress et MySQL et l'existence des fichiers référencés par les Dockerfiles.
+- **Secrets :** ne pas versionner `.env`, éviter les mots de passe en dur dans les scripts et employer des secrets adaptés en production.
+- **Port MySQL :** si la connexion depuis l'hôte n'est pas nécessaire, limiter ou supprimer son exposition.
 
-Le fichier suivant existe :
+## Tests à réaliser
 
-```text
-grafana/dashboards/wordpress-dashboard.json
-```
+1. `docker compose config --quiet` sans erreur.
+2. `docker compose up -d --build` et `docker compose ps` pour confirmer le démarrage.
+3. Ouvrir WordPress et vérifier son thème personnalisé.
+4. Ouvrir Grafana et Prometheus ; vérifier les sources de données et les métriques effectivement collectées.
+5. Vérifier que `.env` est ignoré : `git check-ignore -v .env`.
 
-mais il est vide dans l'archive analysée. Il ne fournit donc actuellement aucun dashboard utilisable.
-
-### Monitoring Nginx
-
-Prometheus ne collecte pas encore de métriques Nginx. La section correspondante dans `prometheus.yml` est uniquement présente sous forme de commentaire.
-
-### Commentaire Nginx
-
-Dans `default.conf`, la directive est :
-
-```nginx
-proxy_pass http://grafana:3000;
-```
-
-La configuration actuelle redirige donc vers **Grafana**.
-
-## Sécurité et publication GitHub
-
-L'archive fournie contient le dossier `.git/`.
-
-Lorsque vous partagez une copie ou une archive du projet, il est généralement préférable de ne pas inclure `.git/`, car il contient l'historique et les métadonnées du dépôt.
-
-Aucun fichier `.env` n'apparaît dans cette archive. Si des mots de passe, tokens ou autres secrets sont ajoutés plus tard, utilisez un fichier `.env` ignoré par Git et fournissez seulement un `.env.example` sans secrets.
-
-Exemple de `.gitignore` :
-
-```gitignore
-.env
-*.log
-.DS_Store
-```
-
-## Résumé
-
-Cette infrastructure fournit :
-
-- un reverse proxy **Nginx** ;
-- un serveur de métriques **Prometheus** ;
-- une interface de visualisation **Grafana** ;
-- un réseau Docker commun pour la communication entre les services.
-
-Elle constitue une base simple pour mettre en place une infrastructure de monitoring et peut ensuite être étendue avec la collecte de métriques Nginx, des dashboards Grafana et d'autres services.
-=======
-# ICT-169_JCS_DPD_LSL
-
-
-
-
-
-## Technologies utilisées
-- Docker
-- Docker Compose
-- MySQL 8.0
--  Bash
-
-
-## Configuration
-Les variables d'environnement sont définies dans le fichier `.env` :
-- MYSQL_ROOT_PASSWORD
-- MYSQL_DATABASE
-- MYSQL_USER
-- MYSQL_PASSWORD
-
-## Déploiement
-Lancer le projet : ```bash docker compose up -d --build
-
-## Vérifier que le conteneur fonctionne : docker ps
-
-bf8912eb94bed93a318a0d9f7c74093c6cb331ba
+Ces tests doivent être effectués localement : la présence des fichiers dans le dépôt ne garantit pas à elle seule le bon fonctionnement des conteneurs.
