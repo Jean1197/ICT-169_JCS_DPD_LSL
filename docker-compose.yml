@@ -1,4 +1,5 @@
 services:
+
   mysql:
     build:
       context: .
@@ -37,7 +38,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: nginx-proxy
     ports:
       - "80:80"
     volumes:
@@ -73,3 +74,4 @@ networks:
 
 volumes:
   mysql_data:
+
